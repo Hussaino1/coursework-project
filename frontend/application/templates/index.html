@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block body %}
+
+    <h2>Unfinished Courseworks</h2>
+    {% for coursework in all_courseworks %}
+    {% if coursework["finishd"] == False %}
+        <p>
+            Coursework ID: {{ coursework["id"] }}<br>
+            Coursework Brief: {{ coursework["brief"] }}<br>
+            <a href="{{ url_for('update_coursework', id=coursework.id) }}">Edit</a>
+            <a href="{{ url_for('delete_coursework', id=coursework.id) }}">Delete</a>
+            <a href="{{ url_for('finish_coursework', id=coursework.id) }}">Finish</a>
+        </p>    
+    {% endif %}
+    {% endfor %}
+    
+    <h2>Finishd Courseworks</h2>
+    {% for coursework in all_courseworks %}
+    {% if coursework["finishd"] == True %}
+        <p>
+            Coursework ID: {{ coursework["id"] }}<br>
+            Coursework Brief: {{ coursework["brief"] }}<br>
+            <a href="{{ url_for('update_coursework', id=coursework.id) }}">Edit</a>
+            <a href="{{ url_for('delete_coursework', id=coursework.id) }}">Delete</a>
+            <a href="{{ url_for('unfinished_coursework', id=coursework.id) }}">Unfinished</a>
+        </p>    
+    {% endif %}
+    {% endfor %}
+
+{% endblock body %}

@@ -1,0 +1,92 @@
+from flask import url_for
+from flask_testing import TestCase
+from application import app, db
+from application.models import Coursework
+
+class TestBase(TestCase):
+
+    def create_app(self):
+        # Defines the flask object's configuration for the unit tests
+        app.config.update(
+            SQLALCHEMY_DATABASE_URI='sqlite:///',
+            DEBUG=True,
+            WTF_CSRF_ENABLED=False
+        )
+        return app
+
+    def setUp(self):
+        # Will be called before every test
+        db.create_all()
+        db.session.add(Coursework(brief="Run unit tests"))
+        db.session.commit()
+
+    def tearDown(self):
+        # Will be called after every test
+        db.session.remove()
+        db.drop_all()
+
+class TestViews(TestBase):
+    # Test whether we get a successful response from our routes
+    def test_home_get(self):
+        response = self.client.get(url_for('home'))
+        self.assert200(response)
+    
+    def test_create_coursework_get(self):
+        response = self.client.get(url_for('create_coursework'))
+        self.assert200(response)
+
+    def test_read_coursework_get(self):
+        response = self.client.get(url_for('read_coursework'))
+        self.assert200(response)
+
+    def test_update_coursework_get(self):
+        response = self.client.get(url_for('update_coursework', id=1))
+        self.assert200(response)
+
+class TestRead(TestBase):
+
+    def test_read_home_coursework(self):
+        response = self.client.get(url_for('home'))
+        self.assertIn(b"Run unit tests", response.data)
+    
+    def test_read_coursework_dictionary(self):
+        response = self.client.get(url_for('read_coursework'))
+        self.assertIn(b"Run unit tests", response.data)
+
+class TestCreate(TestBase):
+
+    def test_create_coursework(self):
+        response = self.client.post(
+            url_for('create_coursework'),
+            data={"brief": "Testing create functionality"},
+            follow_redirects=True
+        )
+        self.assertIn(b"Testing create functionality", response.data)
+    
+class TestUpdate(TestBase):
+
+    def test_update_coursework(self):
+        response = self.client.post(
+            url_for('update_coursework', id=1),
+            data={"brief": "Testing update functionality"},
+            follow_redirects=True
+        )
+        self.assertIn(b"Testing update functionality", response.data)
+    
+    def test_done_coursework(self):
+        response = self.client.get(url_for('done_coursework', id=1), follow_redirects=True)
+        self.assertEqual(Coursework.query.get(1).doned, True)
+    
+    def test_not_done_coursework(self):
+        response = self.client.get(url_for('not_done_coursework', id=1), follow_redirects=True)
+        self.assertEqual(Coursework.query.get(1).doned, False)
+        
+
+class TestDelete(TestBase):
+
+    def test_delete_coursework(self):
+        response = self.client.get(
+            url_for('delete_coursework', id=1),
+            follow_redirects=True
+        )
+        self.assertNotIn(b"Run unit tests", response.data)
